@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TSV Griebo – Terminübersicht</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg: #0d0f14;
+      --surface: #161920;
+      --surface2: #1e2230;
+      --border: #2a2f42;
+      --text: #e8eaf2;
+      --muted: #7880a0;
+      --accent: #e8eaf2;
+
+      --col-1: #3b82f6;      /* Erste Mannschaft – Punktspiel */
+      --col-1-bg: rgba(59,130,246,0.12);
+      --col-2: #f59e0b;      /* Zweite Mannschaft – Punktspiel */
+      --col-2-bg: rgba(245,158,11,0.12);
+      --col-priv: #10b981;   /* Privater Termin */
+      --col-priv-bg: rgba(16,185,129,0.10);
+
+      --radius: 14px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.5);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      padding-bottom: 80px;
+    }
+
+    /* ── Header ─────────────────────────────────── */
+    header {
+      background: linear-gradient(135deg, #0d1117 0%, #161d2e 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 28px 24px 22px;
+      position: sticky; top: 0; z-index: 100;
+      backdrop-filter: blur(8px);
+    }
+    .header-inner {
+      max-width: 780px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    }
+    .logo-area { display: flex; align-items: center; gap: 14px; }
+    .logo-icon {
+      width: 46px; height: 46px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--col-1), #1d4ed8);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; flex-shrink: 0;
+      box-shadow: 0 0 20px rgba(59,130,246,0.35);
+    }
+    h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(1.6rem, 4vw, 2.1rem);
+      letter-spacing: 2px;
+      color: var(--text);
+      line-height: 1;
+    }
+    h1 span { color: var(--col-1); }
+    .subtitle { font-size: 0.75rem; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
+
+    .btn-add {
+      background: var(--col-1);
+      color: #fff;
+      border: none; cursor: pointer;
+      padding: 10px 20px; border-radius: 10px;
+      font-family: 'DM Sans', sans-serif; font-size: 0.88rem; font-weight: 600;
+      display: flex; align-items: center; gap: 7px;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 0 0 rgba(59,130,246,0);
+      white-space: nowrap;
+    }
+    .btn-add:hover {
+      background: #2563eb;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(59,130,246,0.4);
+    }
+
+    /* ── Legend ─────────────────────────────────── */
+    .legend {
+      max-width: 780px; margin: 18px auto 0; padding: 0 24px;
+      display: flex; flex-wrap: wrap; gap: 10px;
+    }
+    .legend-item {
+      display: flex; align-items: center; gap: 7px;
+      font-size: 0.78rem; color: var(--muted); font-weight: 500;
+    }
+    .legend-dot {
+      width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+    }
+
+    /* ── Filter ──────────────────────────────────── */
+    .filters {
+      max-width: 780px; margin: 14px auto 0; padding: 0 24px;
+      display: flex; gap: 8px; flex-wrap: wrap;
+    }
+    .filter-btn {
+      padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border);
+      background: transparent; color: var(--muted); font-family: 'DM Sans', sans-serif;
+      font-size: 0.78rem; cursor: pointer; transition: all 0.18s;
+    }
+    .filter-btn.active, .filter-btn:hover {
+      background: var(--surface2); color: var(--text); border-color: var(--muted);
+    }
+
+    /* ── Main ────────────────────────────────────── */
+    main { max-width: 780px; margin: 0 auto; padding: 24px; }
+
+    .loading {
+      text-align: center; padding: 60px 0; color: var(--muted);
+      font-size: 0.9rem; letter-spacing: 1px;
+    }
+    .spinner {
+      width: 32px; height: 32px; border: 3px solid var(--border);
+      border-top-color: var(--col-1); border-radius: 50%;
+      animation: spin 0.7s linear infinite; margin: 0 auto 14px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Month Group ─────────────────────────────── */
+    .month-group { margin-bottom: 32px; }
+    .month-label {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.1rem; letter-spacing: 3px; color: var(--muted);
+      text-transform: uppercase; margin-bottom: 12px;
+      padding-left: 4px; border-left: 3px solid var(--border);
+      padding-left: 12px;
+    }
+
+    /* ── Card ────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      margin-bottom: 10px;
+      display: grid;
+      grid-template-columns: 56px 1fr auto;
+      gap: 0 16px;
+      align-items: start;
+      transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+      border-left: 4px solid transparent;
+      animation: fadeIn 0.3s ease both;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    .card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+
+    .card.type-1  { border-left-color: var(--col-1); background: linear-gradient(90deg, var(--col-1-bg) 0%, transparent 40%); }
+    .card.type-2  { border-left-color: var(--col-2); background: linear-gradient(90deg, var(--col-2-bg) 0%, transparent 40%); }
+    .card.type-priv { border-left-color: var(--col-priv); background: linear-gradient(90deg, var(--col-priv-bg) 0%, transparent 40%); }
+    .card.past { opacity: 0.5; }
+
+    .card-date {
+      text-align: center;
+      line-height: 1;
+    }
+    .card-day   { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--text); }
+    .card-dow   { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-top: 2px; }
+
+    .card-body { min-width: 0; }
+    .card-title { font-weight: 600; font-size: 1rem; color: var(--text); margin-bottom: 5px; }
+    .card-meta  { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; align-items: center; }
+    .badge {
+      font-size: 0.7rem; font-weight: 600; letter-spacing: 0.5px;
+      padding: 3px 9px; border-radius: 20px; text-transform: uppercase;
+    }
+    .badge-1    { background: var(--col-1-bg); color: var(--col-1); border: 1px solid rgba(59,130,246,0.3); }
+    .badge-2    { background: var(--col-2-bg); color: var(--col-2); border: 1px solid rgba(245,158,11,0.3); }
+    .badge-priv { background: var(--col-priv-bg); color: var(--col-priv); border: 1px solid rgba(16,185,129,0.3); }
+    .badge-time { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+
+    .card-remark {
+      font-size: 0.8rem; color: var(--muted); margin-top: 5px;
+      border-left: 2px solid var(--border); padding-left: 10px;
+      font-style: italic;
+    }
+
+    .card-actions {
+      display: flex; flex-direction: column; gap: 6px; padding-top: 2px;
+    }
+    .icon-btn {
+      width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--surface2); color: var(--muted); cursor: pointer;
+      display: flex; align-items: center; justify-content: center; font-size: 15px;
+      transition: all 0.15s;
+    }
+    .icon-btn:hover { color: var(--text); border-color: var(--muted); }
+    .icon-btn.del:hover { color: #ef4444; border-color: #ef4444; background: rgba(239,68,68,0.08); }
+
+    /* cal export btn */
+    .cal-btn {
+      font-size: 0.7rem; padding: 4px 10px; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--surface2);
+      color: var(--muted); cursor: pointer; white-space: nowrap;
+      transition: all 0.15s; margin-top: 4px;
+    }
+    .cal-btn:hover { color: var(--text); border-color: var(--muted); }
+
+    .empty {
+      text-align: center; padding: 60px 0; color: var(--muted); font-size: 0.9rem;
+    }
+    .empty span { font-size: 2.5rem; display: block; margin-bottom: 12px; }
+
+    /* ── Modal ───────────────────────────────────── */
+    .overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px); z-index: 200;
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+    }
+    .overlay.open { opacity: 1; pointer-events: all; }
+    .modal {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 18px; padding: 28px; width: 100%; max-width: 480px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+      transform: translateY(20px); transition: transform 0.25s;
+      max-height: 90vh; overflow-y: auto;
+    }
+    .overlay.open .modal { transform: none; }
+
+    .modal h2 {
+      font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem;
+      letter-spacing: 2px; margin-bottom: 22px; color: var(--text);
+    }
+
+    .form-group { margin-bottom: 16px; }
+    label { display: block; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.5px;
+      color: var(--muted); text-transform: uppercase; margin-bottom: 6px; }
+    input, select, textarea {
+      width: 100%; background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text); border-radius: 10px; padding: 11px 14px;
+      font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+      transition: border-color 0.15s; outline: none;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--col-1); }
+    select option { background: var(--surface2); }
+    textarea { resize: vertical; min-height: 70px; }
+
+    .type-selector { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+    .type-option {
+      border: 2px solid var(--border); border-radius: 10px; padding: 10px 6px;
+      text-align: center; cursor: pointer; transition: all 0.15s;
+      font-size: 0.78rem; font-weight: 600; color: var(--muted);
+    }
+    .type-option .icon { font-size: 1.3rem; display: block; margin-bottom: 4px; }
+    .type-option.sel-1    { border-color: var(--col-1); color: var(--col-1); background: var(--col-1-bg); }
+    .type-option.sel-2    { border-color: var(--col-2); color: var(--col-2); background: var(--col-2-bg); }
+    .type-option.sel-priv { border-color: var(--col-priv); color: var(--col-priv); background: var(--col-priv-bg); }
+
+    .modal-actions { display: flex; gap: 10px; margin-top: 22px; }
+    .btn-primary {
+      flex: 1; padding: 12px; background: var(--col-1); color: #fff;
+      border: none; border-radius: 10px; cursor: pointer;
+      font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 0.95rem;
+      transition: background 0.15s;
+    }
+    .btn-primary:hover { background: #2563eb; }
+    .btn-cancel {
+      padding: 12px 20px; background: var(--surface2); color: var(--muted);
+      border: 1px solid var(--border); border-radius: 10px; cursor: pointer;
+      font-family: 'DM Sans', sans-serif; font-weight: 500;
+      transition: all 0.15s;
+    }
+    .btn-cancel:hover { color: var(--text); }
+
+    /* ── Calendar Export Info ─────────────────────── */
+    .cal-info {
+      max-width: 780px; margin: 0 auto 0; padding: 0 24px 6px;
+      font-size: 0.75rem; color: var(--muted);
+    }
+
+    /* ── Toast ───────────────────────────────────── */
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(60px);
+      background: #1e2230; border: 1px solid var(--border); color: var(--text);
+      padding: 11px 20px; border-radius: 30px; font-size: 0.85rem; font-weight: 500;
+      z-index: 300; transition: transform 0.3s, opacity 0.3s; opacity: 0;
+      white-space: nowrap; box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+    @media (max-width: 540px) {
+      .card { grid-template-columns: 46px 1fr auto; gap: 0 12px; }
+      .card-day { font-size: 1.6rem; }
+      .modal-actions { flex-direction: column; }
+    }
+  </style>
+
+</head>
+<body>
+
+<!-- Header -->
+
+<header>
+  <div class="header-inner">
+    <div class="logo-area">
+      <div class="logo-icon">🏓</div>
+      <div>
+        <h1>TSV <span>Griebo</span></h1>
+        <div class="subtitle">Terminübersicht</div>
+      </div>
+    </div>
+    <button class="btn-add" onclick="openModal()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Termin
+    </button>
+  </div>
+</header>
+
+<!-- Legend -->
+
+<div class="legend">
+  <div class="legend-item"><span class="legend-dot" style="background:var(--col-1)"></span> Punktspiel 1. Mannschaft</div>
+  <div class="legend-item"><span class="legend-dot" style="background:var(--col-2)"></span> Punktspiel 2. Mannschaft</div>
+  <div class="legend-item"><span class="legend-dot" style="background:var(--col-priv)"></span> Privater Termin</div>
+</div>
+
+<!-- Filters -->
+
+<div class="filters">
+  <button class="filter-btn active" data-filter="all">Alle</button>
+  <button class="filter-btn" data-filter="upcoming">Zukünftig</button>
+  <button class="filter-btn" data-filter="1">1. Mannschaft</button>
+  <button class="filter-btn" data-filter="2">2. Mannschaft</button>
+  <button class="filter-btn" data-filter="priv">Privat</button>
+</div>
+
+<div class="cal-info">📅 Klicke auf einen Termin, um ihn in deinen Kalender zu exportieren (iOS &amp; Android).</div>
+
+<!-- Main -->
+
+<main id="app">
+  <div class="loading">
+    <div class="spinner"></div>
+    Lade Termine…
+  </div>
+</main>
+
+<!-- Modal -->
+
+<div class="overlay" id="overlay" onclick="handleOverlayClick(event)">
+  <div class="modal" id="modal">
+    <h2 id="modal-title">Termin hinzufügen</h2>
+
+```
+<div class="form-group">
+  <label>Art des Termins</label>
+  <div class="type-selector">
+    <div class="type-option sel-1" data-type="1" onclick="selectType('1')">
+      <span class="icon">🏆</span>1. Mannschaft
+    </div>
+    <div class="type-option" data-type="2" onclick="selectType('2')">
+      <span class="icon">🥈</span>2. Mannschaft
+    </div>
+    <div class="type-option" data-type="priv" onclick="selectType('priv')">
+      <span class="icon">🤝</span>Privat
+    </div>
+  </div>
+</div>
+
+<div class="form-group">
+  <label>Titel *</label>
+  <input type="text" id="f-title" placeholder="z.B. Heimspiel vs. TTC Musterhausen" />
+</div>
+
+<div class="form-group">
+  <label>Datum *</label>
+  <input type="date" id="f-date" />
+</div>
+
+<div class="form-group">
+  <label>Uhrzeit</label>
+  <input type="time" id="f-time" placeholder="z.B. 18:00" />
+</div>
+
+<div class="form-group">
+  <label>Ort / Halle</label>
+  <input type="text" id="f-location" placeholder="z.B. Sporthalle Grieb" />
+</div>
+
+<div class="form-group">
+  <label>Bemerkung</label>
+  <textarea id="f-remark" placeholder="Zusätzliche Infos, Hinweise, …"></textarea>
+</div>
+
+<div class="modal-actions">
+  <button class="btn-cancel" onclick="closeModal()">Abbrechen</button>
+  <button class="btn-primary" id="btn-save" onclick="saveEvent()">Speichern</button>
+</div>
+```
+
+  </div>
+</div>
+
+<!-- Toast -->
+
+<div class="toast" id="toast"></div>
+
+<!-- Firebase SDK -->
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, onValue, push, update, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBxIuGvrcyX7hgrc9WyiXF54dGxhohwa_Y",
+    authDomain: "termine-tsv-griebp.firebaseapp.com",
+    databaseURL: "https://termine-tsv-griebp-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "termine-tsv-griebp",
+    storageBucket: "termine-tsv-griebp.firebasestorage.app",
+    messagingSenderId: "776064489441",
+    appId: "1:776064489441:web:1f76ac6a81d53c36e35684"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getDatabase(app);
+  const eventsRef = ref(db, 'events');
+
+  let allEvents = [];
+  let currentFilter = 'all';
+  let editingId = null;
+  let selectedType = '1';
+
+  // ── Realtime listener ──────────────────────────
+  onValue(eventsRef, snapshot => {
+    allEvents = [];
+    if (snapshot.exists()) {
+      snapshot.forEach(child => {
+        allEvents.push({ id: child.key, ...child.val() });
+      });
+    }
+    allEvents.sort((a, b) => a.date.localeCompare(b.date) || (a.time||'').localeCompare(b.time||''));
+    render();
+  });
+
+  // ── Render ─────────────────────────────────────
+  function render() {
+    const today = new Date().toISOString().slice(0,10);
+    let events = [...allEvents];
+
+    if (currentFilter === 'upcoming') events = events.filter(e => e.date >= today);
+    else if (currentFilter !== 'all') events = events.filter(e => e.type === currentFilter);
+
+    const app = document.getElementById('app');
+    if (!events.length) {
+      app.innerHTML = `<div class="empty"><span>📋</span>Keine Termine gefunden.</div>`;
+      return;
+    }
+
+    // Group by month
+    const groups = {};
+    events.forEach(e => {
+      const m = e.date.slice(0,7);
+      if (!groups[m]) groups[m] = [];
+      groups[m].push(e);
+    });
+
+    const MONTHS = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+    const DAYS   = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+
+    let html = '';
+    Object.keys(groups).sort().forEach(m => {
+      const [yr, mo] = m.split('-');
+      html += `<div class="month-group">
+        <div class="month-label">${MONTHS[parseInt(mo)-1]} ${yr}</div>`;
+
+      groups[m].forEach(e => {
+        const d = new Date(e.date + 'T00:00:00');
+        const day = String(d.getDate()).padStart(2,'0');
+        const dow = DAYS[d.getDay()];
+        const past = e.date < today ? ' past' : '';
+        const typeClass = e.type === '1' ? 'type-1' : e.type === '2' ? 'type-2' : 'type-priv';
+
+        let badgeHtml = '';
+        if (e.type === '1') badgeHtml = '<span class="badge badge-1">1. Mannschaft</span>';
+        else if (e.type === '2') badgeHtml = '<span class="badge badge-2">2. Mannschaft</span>';
+        else badgeHtml = '<span class="badge badge-priv">Privat</span>';
+
+        const timeBadge = e.time ? `<span class="badge badge-time">⏰ ${e.time} Uhr</span>` : '';
+        const locBadge  = e.location ? `<span class="badge badge-time">📍 ${e.location}</span>` : '';
+        const remark    = e.remark ? `<div class="card-remark">${e.remark}</div>` : '';
+
+        html += `
+        <div class="card ${typeClass}${past}" style="animation-delay:${groups[m].indexOf(e)*0.05}s">
+          <div class="card-date">
+            <div class="card-day">${day}</div>
+            <div class="card-dow">${dow}</div>
+          </div>
+          <div class="card-body">
+            <div class="card-title">${e.title}</div>
+            <div class="card-meta">
+              ${badgeHtml}${timeBadge}${locBadge}
+            </div>
+            ${remark}
+            <button class="cal-btn" onclick="exportCal('${e.id}')">📅 Zum Kalender</button>
+          </div>
+          <div class="card-actions">
+            <button class="icon-btn" onclick="editEvent('${e.id}')" title="Bearbeiten">✏️</button>
+            <button class="icon-btn del" onclick="deleteEvent('${e.id}')" title="Löschen">🗑️</button>
+          </div>
+        </div>`;
+      });
+      html += '</div>';
+    });
+
+    app.innerHTML = html;
+  }
+
+  // ── Save ───────────────────────────────────────
+  window.saveEvent = async function () {
+    const title    = document.getElementById('f-title').value.trim();
+    const date     = document.getElementById('f-date').value;
+    const time     = document.getElementById('f-time').value;
+    const location = document.getElementById('f-location').value.trim();
+    const remark   = document.getElementById('f-remark').value.trim();
+
+    if (!title || !date) { showToast('⚠️ Titel und Datum sind Pflichtfelder'); return; }
+
+    const data = { title, date, time, location, remark, type: selectedType };
+
+    if (editingId) {
+      await update(ref(db, 'events/' + editingId), data);
+      showToast('✅ Termin aktualisiert');
+    } else {
+      await push(eventsRef, data);
+      showToast('✅ Termin gespeichert');
+    }
+    closeModal();
+  };
+
+  // ── Edit ───────────────────────────────────────
+  window.editEvent = function(id) {
+    const e = allEvents.find(x => x.id === id);
+    if (!e) return;
+    editingId = id;
+    document.getElementById('modal-title').textContent = 'Termin bearbeiten';
+    document.getElementById('f-title').value    = e.title    || '';
+    document.getElementById('f-date').value     = e.date     || '';
+    document.getElementById('f-time').value     = e.time     || '';
+    document.getElementById('f-location').value = e.location || '';
+    document.getElementById('f-remark').value   = e.remark   || '';
+    selectType(e.type || '1');
+    openModal();
+  };
+
+  // ── Delete ─────────────────────────────────────
+  window.deleteEvent = async function(id) {
+    if (!confirm('Termin wirklich löschen?')) return;
+    await remove(ref(db, 'events/' + id));
+    showToast('🗑️ Termin gelöscht');
+  };
+
+  // ── Calendar Export ────────────────────────────
+  window.exportCal = function(id) {
+    const e = allEvents.find(x => x.id === id);
+    if (!e) return;
+
+    const [yr, mo, dy] = e.date.split('-');
+    let dtStart, dtEnd;
+
+    if (e.time) {
+      const [hh, mm] = e.time.split(':');
+      const pad = n => String(n).padStart(2,'0');
+      dtStart = `${yr}${mo}${dy}T${pad(hh)}${pad(mm)}00`;
+      // +2h
+      let endH = parseInt(hh) + 2;
+      dtEnd = `${yr}${mo}${dy}T${pad(endH)}${pad(mm)}00`;
+    } else {
+      dtStart = `${yr}${mo}${dy}`;
+      const nextDay = new Date(e.date);
+      nextDay.setDate(nextDay.getDate() + 1);
+      dtEnd = nextDay.toISOString().slice(0,10).replace(/-/g,'');
+    }
+
+    const typeLabel = e.type === '1' ? 'Punktspiel 1. Mannschaft' :
+                      e.type === '2' ? 'Punktspiel 2. Mannschaft' : 'Privater Termin';
+
+    const description = [typeLabel, e.remark].filter(Boolean).join(' | ');
+
+    const ics = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//TSV Griebo//Termine//DE',
+      'BEGIN:VEVENT',
+      `DTSTART:${dtStart}`,
+      `DTEND:${dtEnd}`,
+      `SUMMARY:${e.title}`,
+      `DESCRIPTION:${description}`,
+      e.location ? `LOCATION:${e.location}` : '',
+      'END:VEVENT',
+      'END:VCALENDAR'
+    ].filter(Boolean).join('\r\n');
+
+    const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = `${e.title.replace(/\s+/g,'-')}.ics`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('📅 .ics heruntergeladen – tippe die Datei, um sie zu öffnen');
+  };
+
+  // ── Type selector ──────────────────────────────
+  window.selectType = function(t) {
+    selectedType = t;
+    document.querySelectorAll('.type-option').forEach(el => {
+      el.className = 'type-option';
+      if (el.dataset.type === t) {
+        el.classList.add(t === '1' ? 'sel-1' : t === '2' ? 'sel-2' : 'sel-priv');
+      }
+    });
+  };
+
+  // ── Modal ──────────────────────────────────────
+  window.openModal = function() {
+    document.getElementById('overlay').classList.add('open');
+  };
+  window.closeModal = function() {
+    document.getElementById('overlay').classList.remove('open');
+    editingId = null;
+    document.getElementById('modal-title').textContent = 'Termin hinzufügen';
+    ['f-title','f-date','f-time','f-location','f-remark'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    selectType('1');
+  };
+  window.handleOverlayClick = function(e) {
+    if (e.target === document.getElementById('overlay')) closeModal();
+  };
+
+  // ── Filter ─────────────────────────────────────
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentFilter = btn.dataset.filter;
+      render();
+    });
+  });
+
+  // ── Toast ──────────────────────────────────────
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  // Default date
+  document.getElementById('f-date').valueAsDate = new Date();
+</script>
+
+</body>
+</html>
