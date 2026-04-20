@@ -272,6 +272,31 @@
     }
     .btn-cancel:hover { color: var(--text); }
 
+    /* ── Tabellen-Links ──────────────────────────── */
+    .table-links {
+      max-width: 780px; margin: 16px auto 0; padding: 0 24px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    }
+    .table-link-card {
+      display: flex; align-items: center; gap: 12px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 13px 16px;
+      text-decoration: none; color: var(--text);
+      transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+      border-left: 4px solid transparent;
+    }
+    .table-link-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+    .table-link-card.m1 { border-left-color: var(--col-1); background: linear-gradient(90deg, var(--col-1-bg) 0%, transparent 50%); }
+    .table-link-card.m1:hover { border-color: var(--col-1); }
+    .table-link-card.m2 { border-left-color: var(--col-2); background: linear-gradient(90deg, var(--col-2-bg) 0%, transparent 50%); }
+    .table-link-card.m2:hover { border-color: var(--col-2); }
+    .table-link-icon { font-size: 1.4rem; flex-shrink: 0; }
+    .table-link-text { min-width: 0; }
+    .table-link-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); font-weight: 600; }
+    .table-link-name  { font-size: 0.88rem; font-weight: 600; color: var(--text); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .table-link-sub   { font-size: 0.72rem; color: var(--muted); margin-top: 1px; }
+    @media (max-width: 480px) { .table-links { grid-template-columns: 1fr; } }
+
     /* ── Calendar Export Info ─────────────────────── */
     .cal-info {
       max-width: 780px; margin: 0 auto 0; padding: 0 24px 6px;
@@ -322,6 +347,27 @@
   <div class="legend-item"><span class="legend-dot" style="background:var(--col-1)"></span> Punktspiel 1. Mannschaft</div>
   <div class="legend-item"><span class="legend-dot" style="background:var(--col-2)"></span> Punktspiel 2. Mannschaft</div>
   <div class="legend-item"><span class="legend-dot" style="background:var(--col-priv)"></span> Privater Termin</div>
+</div>
+
+<!-- Tabellen-Links -->
+
+<div class="table-links">
+  <a class="table-link-card m1" href="https://www.mytischtennis.de/click-tt/TTVSA/25--26/ligen/Landesliga_Dessau/gruppe/493386/tabelle/gesamt" target="_blank" rel="noopener">
+    <div class="table-link-icon">🏆</div>
+    <div class="table-link-text">
+      <div class="table-link-label">1. Mannschaft</div>
+      <div class="table-link-name">Tabelle ansehen</div>
+      <div class="table-link-sub">Landesliga Dessau</div>
+    </div>
+  </a>
+  <a class="table-link-card m2" href="https://www.mytischtennis.de/click-tt/TTVSA/25--26/ligen/Bezirksliga_Dessau--Anhalt-Bitterfeld--Wittenberg/gruppe/493385/tabelle/gesamt" target="_blank" rel="noopener">
+    <div class="table-link-icon">🥈</div>
+    <div class="table-link-text">
+      <div class="table-link-label">2. Mannschaft</div>
+      <div class="table-link-name">Tabelle ansehen</div>
+      <div class="table-link-sub">Bezirksliga Dessau</div>
+    </div>
+  </a>
 </div>
 
 <!-- Filters -->
