@@ -374,7 +374,6 @@
 
 <div class="filters">
   <button class="filter-btn active" data-filter="all">Alle</button>
-  <button class="filter-btn" data-filter="upcoming">Zukünftig</button>
   <button class="filter-btn" data-filter="1">1. Mannschaft</button>
   <button class="filter-btn" data-filter="2">2. Mannschaft</button>
   <button class="filter-btn" data-filter="priv">Privat</button>
@@ -479,11 +478,23 @@
   // ── Realtime listener ──────────────────────────
   onValue(eventsRef, snapshot => {
     allEvents = [];
+    const today = new Date().toISOString().slice(0,10);
+    const toDelete = [];
+
     if (snapshot.exists()) {
       snapshot.forEach(child => {
-        allEvents.push({ id: child.key, ...child.val() });
+        const e = { id: child.key, ...child.val() };
+        if (e.date < today) {
+          toDelete.push(child.key);
+        } else {
+          allEvents.push(e);
+        }
       });
     }
+
+    // Auto-delete past events from Firebase
+    toDelete.forEach(id => remove(ref(db, 'events/' + id)));
+
     allEvents.sort((a, b) => a.date.localeCompare(b.date) || (a.time||'').localeCompare(b.time||''));
     render();
   });
@@ -493,8 +504,7 @@
     const today = new Date().toISOString().slice(0,10);
     let events = [...allEvents];
 
-    if (currentFilter === 'upcoming') events = events.filter(e => e.date >= today);
-    else if (currentFilter !== 'all') events = events.filter(e => e.type === currentFilter);
+    if (currentFilter !== 'all') events = events.filter(e => e.type === currentFilter);
 
     const app = document.getElementById('app');
     if (!events.length) {
