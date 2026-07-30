@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
@@ -288,6 +287,18 @@
     }
     .btn-cancel:hover { color: var(--text); }
 
+
+    /* ── Notify Button ───────────────────────────── */
+    .btn-notify {
+      background: transparent; border: 1px solid var(--border);
+      color: var(--muted); cursor: pointer;
+      width: 38px; height: 38px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; transition: all 0.18s; flex-shrink: 0;
+    }
+    .btn-notify:hover { border-color: var(--yellow); color: var(--yellow); }
+    .btn-notify.active { border-color: var(--yellow); color: var(--yellow); background: var(--yellow-bg); }
+
     /* ── Toast ───────────────────────────────────── */
     .toast {
       position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(60px);
@@ -304,12 +315,10 @@
       .modal-actions { flex-direction: column; }
     }
   </style>
-
 </head>
 <body>
 
 <!-- Header -->
-
 <header>
   <div class="header-inner">
     <div class="logo-area">
@@ -319,6 +328,7 @@
         <div class="subtitle">Tischtennis · Terminübersicht</div>
       </div>
     </div>
+    <button class="btn-notify" id="btn-notify" title="Benachrichtigungen aktivieren">🔔</button>
     <button class="btn-add" onclick="openModal()">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       Termin
@@ -327,7 +337,6 @@
 </header>
 
 <!-- Legend -->
-
 <div class="legend">
   <div class="legend-item"><span class="legend-dot" style="background:var(--col-1)"></span> Punktspiel 1. Mannschaft</div>
   <div class="legend-item"><span class="legend-dot" style="background:var(--col-2)"></span> Punktspiel 2. Mannschaft</div>
@@ -335,9 +344,8 @@
 </div>
 
 <!-- Tabellen- & TTR-Links -->
-
 <div class="table-links">
-  <a class="table-link-card m1" href="https://www.mytischtennis.de/click-tt/TTVSA/25--26/ligen/Landesliga_Dessau/gruppe/493386/tabelle/gesamt" target="_blank" rel="noopener">
+  <a class="table-link-card m1" href="https://www.mytischtennis.de/click-tt/TTVSA/26--27/ligen/Landesliga_Dessau/gruppe/521853/tabelle/gesamt" target="_blank" rel="noopener">
     <div class="table-link-icon">🏆</div>
     <div class="table-link-text">
       <div class="table-link-label">1. Mannschaft</div>
@@ -345,7 +353,7 @@
       <div class="table-link-sub">Landesliga Dessau</div>
     </div>
   </a>
-  <a class="table-link-card m2" href="https://www.mytischtennis.de/click-tt/TTVSA/25--26/ligen/Bezirksliga_Dessau--Anhalt-Bitterfeld--Wittenberg/gruppe/493385/tabelle/gesamt" target="_blank" rel="noopener">
+  <a class="table-link-card m2" href="https://www.mytischtennis.de/click-tt/TTVSA/26--27/ligen/Bezirksliga_Dessau--Anhalt-Bitterfeld--Wittenberg/gruppe/521785/tabelle/gesamt" target="_blank" rel="noopener">
     <div class="table-link-icon">🥈</div>
     <div class="table-link-text">
       <div class="table-link-label">2. Mannschaft</div>
@@ -364,7 +372,6 @@
 </div>
 
 <!-- Filters -->
-
 <div class="filters">
   <button class="filter-btn active" data-filter="all">Alle</button>
   <button class="filter-btn" data-filter="1">1. Mannschaft</button>
@@ -375,7 +382,6 @@
 <div class="cal-info">📅 Klicke auf „Zum Kalender" um einen Termin in iOS oder Android zu speichern.</div>
 
 <!-- Main -->
-
 <main id="app">
   <div class="loading">
     <div class="spinner"></div>
@@ -384,70 +390,65 @@
 </main>
 
 <!-- Modal -->
-
 <div class="overlay" id="overlay" onclick="handleOverlayClick(event)">
   <div class="modal" id="modal">
     <h2 id="modal-title">Termin hinzufügen</h2>
 
-```
-<div class="form-group">
-  <label>Art des Termins</label>
-  <div class="type-selector">
-    <div class="type-option sel-1" data-type="1" onclick="selectType('1')">
-      <span class="icon">🏆</span>1. Mannschaft
+    <div class="form-group">
+      <label>Art des Termins</label>
+      <div class="type-selector">
+        <div class="type-option sel-1" data-type="1" onclick="selectType('1')">
+          <span class="icon">🏆</span>1. Mannschaft
+        </div>
+        <div class="type-option" data-type="2" onclick="selectType('2')">
+          <span class="icon">🥈</span>2. Mannschaft
+        </div>
+        <div class="type-option" data-type="priv" onclick="selectType('priv')">
+          <span class="icon">🤝</span>Privat
+        </div>
+      </div>
     </div>
-    <div class="type-option" data-type="2" onclick="selectType('2')">
-      <span class="icon">🥈</span>2. Mannschaft
+
+    <div class="form-group">
+      <label>Titel *</label>
+      <input type="text" id="f-title" placeholder="z.B. Heimspiel vs. TTC Musterhausen" />
     </div>
-    <div class="type-option" data-type="priv" onclick="selectType('priv')">
-      <span class="icon">🤝</span>Privat
+
+    <div class="form-group">
+      <label>Datum *</label>
+      <input type="date" id="f-date" />
     </div>
-  </div>
-</div>
 
-<div class="form-group">
-  <label>Titel *</label>
-  <input type="text" id="f-title" placeholder="z.B. Heimspiel vs. TTC Musterhausen" />
-</div>
+    <div class="form-group">
+      <label>Uhrzeit</label>
+      <input type="time" id="f-time" />
+    </div>
 
-<div class="form-group">
-  <label>Datum *</label>
-  <input type="date" id="f-date" />
-</div>
+    <div class="form-group">
+      <label>Ort / Halle</label>
+      <input type="text" id="f-location" placeholder="z.B. Sporthalle Griebo" />
+    </div>
 
-<div class="form-group">
-  <label>Uhrzeit</label>
-  <input type="time" id="f-time" />
-</div>
+    <div class="form-group">
+      <label>Bemerkung</label>
+      <textarea id="f-remark" placeholder="Zusätzliche Infos, Hinweise, …"></textarea>
+    </div>
 
-<div class="form-group">
-  <label>Ort / Halle</label>
-  <input type="text" id="f-location" placeholder="z.B. Sporthalle Griebo" />
-</div>
-
-<div class="form-group">
-  <label>Bemerkung</label>
-  <textarea id="f-remark" placeholder="Zusätzliche Infos, Hinweise, …"></textarea>
-</div>
-
-<div class="modal-actions">
-  <button class="btn-cancel" onclick="closeModal()">Abbrechen</button>
-  <button class="btn-primary" onclick="saveEvent()">Speichern</button>
-</div>
-```
-
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Abbrechen</button>
+      <button class="btn-primary" onclick="saveEvent()">Speichern</button>
+    </div>
   </div>
 </div>
 
 <!-- Toast -->
-
 <div class="toast" id="toast"></div>
 
 <!-- Firebase SDK -->
-
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getDatabase, ref, onValue, push, update, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBxIuGvrcyX7hgrc9WyiXF54dGxhohwa_Y",
@@ -467,6 +468,48 @@
   let currentFilter = 'all';
   let editingId = null;
   let selectedType = '1';
+
+
+
+  // ── Push Notifications (FCM) ───────────────────
+  const messaging = getMessaging(app);
+  const VAPID_KEY = 'YOUR_VAPID_KEY_HERE'; // ← Ersetze mit deinem VAPID Key aus Firebase Console
+
+  async function initNotifications() {
+    if (!('Notification' in window)) return;
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') return;
+
+      const token = await getToken(messaging, { vapidKey: VAPID_KEY });
+      if (token) {
+        // Token in Firebase speichern (pro Gerät einmalig)
+        const tokenRef = ref(db, 'fcm_tokens/' + token.slice(0,20));
+        await update(tokenRef, { token, ts: Date.now() });
+      }
+    } catch(e) {
+      console.warn('FCM init failed:', e);
+    }
+  }
+
+  // Foreground-Nachrichten anzeigen (App ist geöffnet)
+  onMessage(messaging, payload => {
+    const { title, body } = payload.notification || {};
+    if (title) showToast('🔔 ' + title + (body ? ': ' + body : ''));
+  });
+
+  // Benachrichtigungs-Button im Header verdrahten
+  document.getElementById('btn-notify').addEventListener('click', initNotifications);
+
+  // Wrapper: Termin speichern + Benachrichtigung auslösen
+  async function sendNotification(title, body) {
+    // Schreibt Trigger in Firebase → Cloud Function liest und verschickt FCM
+    await push(ref(db, 'notifications'), {
+      title,
+      body,
+      ts: Date.now()
+    });
+  }
 
   // ── Realtime listener ──────────────────────────
   onValue(eventsRef, snapshot => {
@@ -567,9 +610,11 @@
 
     if (editingId) {
       await update(ref(db, 'events/' + editingId), data);
+      await sendNotification('Termin geändert', title);
       showToast('✅ Termin aktualisiert');
     } else {
       await push(eventsRef, data);
+      await sendNotification('Neuer Termin', title);
       showToast('✅ Termin gespeichert');
     }
     closeModal();
@@ -671,6 +716,14 @@
   }
 
   document.getElementById('f-date').valueAsDate = new Date();
+</script>
+
+<!-- Service Worker für FCM (Hintergrund-Nachrichten) -->
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/firebase-messaging-sw.js')
+    .catch(e => console.log('SW registration skipped (local):', e.message));
+}
 </script>
 
 </body>
